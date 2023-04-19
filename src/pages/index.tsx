@@ -10,6 +10,7 @@ import { HiMagnifyingGlass } from 'react-icons/hi2';
 import { InView } from 'react-intersection-observer';
 
 import clsxm from '@/lib/clsxm';
+import useSearch from '@/hooks/useSearch';
 
 import Button from '@/components/buttons/Button';
 import ButtonGroup from '@/components/buttons/ButtonGroup';
@@ -60,10 +61,6 @@ export default function HomePage() {
     queryFn: ({ pageParam = 0 }) => getPassengerPaginated(pageParam, 100),
   });
 
-  const [searchMethod, setSearchMethod] = React.useState<
-    'fast' | 'detail' | 'exact'
-  >('fast');
-
   // React.useEffect(() => {
   //   console.log('data', data);
   // }, [data]);
@@ -83,6 +80,19 @@ export default function HomePage() {
     // console.log('pass', pass);
     return pass;
   }, [data]);
+
+  const {
+    searchMethod,
+    setSearchMethod,
+    // path,
+    // inputRef,
+    searchTerm,
+    // setSearchTerm,
+    // fastSearchCache,
+    // getCache,
+    onSubmitHandler,
+    processedData,
+  } = useSearch('name', passengers);
 
   if (status === 'loading') return <h1>Loading...</h1>;
   if (status === 'error') return <h1>{JSON.stringify(error)}</h1>;
@@ -161,7 +171,11 @@ export default function HomePage() {
                     onSubmit={(e) => e.preventDefault()}
                     className='flex flex-col gap-4 lg:flex-row'
                   >
-                    <StyledInput type='text' placeholder='Elon Musk' />
+                    <StyledInput
+                      onChange={(e) => onSubmitHandler(e.target.value)}
+                      type='text'
+                      placeholder='chicken breast'
+                    />
                     <ButtonGroup
                       className={clsxm(
                         'flex items-center justify-center rounded-md p-0',
@@ -191,7 +205,7 @@ export default function HomePage() {
                         }
                         iconClassName='h-4 w-4'
                         onClick={() =>
-                          setSearchMethod((prev) =>
+                          setSearchMethod((prev: string) =>
                             prev === 'fast'
                               ? 'detail'
                               : prev === 'detail'
@@ -202,12 +216,16 @@ export default function HomePage() {
                       />
                     </ButtonGroup>
                   </form>
-                  {passengers && passengers.length && (
+                  {passengers && passengers.length && processedData && (
                     <div className='-mx-4 -my-2 mt-2 overflow-x-auto sm:-mx-6 lg:-mx-8'>
                       <div className='inline-block min-w-full py-2 align-middle md:px-6 lg:px-8'>
                         <div className='overflow-hidden ring-1 ring-black ring-opacity-5 dark:ring-gray-800 md:rounded-lg'>
                           <PassengerTable
-                            passengers={passengers as Passenger[]}
+                            passengers={
+                              searchTerm
+                                ? (processedData as Passenger[])
+                                : (passengers as Passenger[])
+                            }
                           />
                         </div>
                       </div>
